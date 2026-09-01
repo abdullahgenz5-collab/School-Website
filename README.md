@@ -2,7 +2,7 @@
 
 A modern, responsive school website featuring an interactive student voting system. Built with React, TypeScript, and Vite for optimal performance and a smooth user experience.
 
-### 🌐 👉https://venerable-cobbler-ff0884.netlify.app/
+### 🌐 👉https://9s2ktz1l-3000.inc1.devtunnels.ms/
 
 ---
 
