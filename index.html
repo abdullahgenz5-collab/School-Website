@@ -56,9 +56,7 @@
            BASE STYLES
            ============================================ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         html { scroll-behavior: smooth; }
-
         body {
             background-color: var(--color-bg);
             color: var(--color-text-primary);
@@ -171,9 +169,24 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
         }
 
+        /* 🌟 CHANGE 1: YE CSS ADD KARO - PEACHY GLOW EFFECT */
+        .card-surface::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.06) 0%, transparent 70%);
+            animation: peachyPulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        @keyframes peachyPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+            50% { transform: scale(1.15) rotate(5deg); opacity: 0.8; }
+        }
+
         /* ============================================
            BUTTON COMPONENT — .btn-glow
-           One reusable class for EVERY button
            ============================================ */
         .btn-glow {
             display: inline-flex;
@@ -236,7 +249,7 @@
             color: white !important;
         }
 
-        /* Back button variant (same .btn-glow, just smaller) */
+        /* Back button variant */
         .btn-glow.btn-back {
             padding: 0.5rem 1.25rem;
             font-size: 0.875rem;
@@ -410,7 +423,7 @@
                     WELCOME TO WEBSITE MADE BY ABDULLAH RIAZ
                 </h1>
                 <p class="mb-8 text-sm sm:text-base" style="color: var(--color-text-muted);">
-                    Here you can see the result of whole 10 class of Gul-e-Frana school
+                    Here you can see the result of whole 10 class of Gul-e-Faran school
                 </p>
                 <button onclick="navigateForward('view1','view1b')" class="btn-glow w-full sm:w-auto">
                     Go to Dashboard
@@ -429,10 +442,11 @@
                     Choose which class results you want to view
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button onclick="navigateForward('view1b','view2')" class="btn-glow w-full sm:w-auto">
+                    <!-- 🌟 CHANGE 2: YE DONO BUTTONS CHANGE KARO -->
+                    <button onclick="selectClass('9')" class="btn-glow w-full sm:w-auto">
                         Class 9
                     </button>
-                    <button onclick="navigateForward('view1b','view2')" class="btn-glow w-full sm:w-auto">
+                    <button onclick="selectClass('10')" class="btn-glow w-full sm:w-auto">
                         Class 10
                     </button>
                 </div>
@@ -461,7 +475,8 @@
 
                 <div id="results" class="space-y-4 mb-8 p-4 rounded-xl" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border);"></div>
 
-                <button id="resultBtn" onclick="navigateForward('view2','view3')" disabled class="btn-glow w-full" aria-disabled="true">
+                <!--  CHANGE 3: YE BUTTON CHANGE KARO - onclick hata do -->
+                <button id="resultBtn" disabled class="btn-glow w-full" aria-disabled="true">
                     See Class 10 Result
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
@@ -557,8 +572,7 @@
             img.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzE5MTIyOCIgcng9IjEyIi8+PHRleHQgeD0iNDAwIiB5PSIyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM4YjdkYjgiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNTAwIj5ObyBwaG90byBhdmFpbGFibGU8L3RleHQ+PHRleHQgeD0iNDAwIiB5PSIzMTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM1YTRhN2EiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0Ij5VcGxvYWQgYW4gaW1hZ2UgYW5kIHVwZGF0ZSB0aGUgaW1nIGZpZWxkPC90ZXh0Pjwvc3ZnPg==";
         };
     </script>
-
-    <!-- ============================================
+        <!-- ============================================
          FIREBASE MODULE — preserved exactly
          ============================================ -->
     <script type="module">
@@ -583,6 +597,23 @@
         // ============================================
         let currentViewId = 'view1';
         let isTransitioning = false;
+        
+        // 🌟 CHANGE 4: YE 2 CHEEZEN ADD KARO - CLASS SELECTION TRACKING
+        let selectedClass = null;
+
+        window.selectClass = function(classNum) {
+            selectedClass = classNum;
+            const resultBtn = document.getElementById('resultBtn');
+            
+            if (classNum === '9') {
+                resultBtn.innerHTML = `See Class 9 Result <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+                resultBtn.onclick = () => navigateForward('view2', 'view3b');
+            } else {
+                resultBtn.innerHTML = `See Class 10 Result <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+                resultBtn.onclick = () => navigateForward('view2', 'view3');
+            }
+            navigateForward('view1b', 'view2');
+        };
 
         window.navigateForward = (fromId, toId) => {
             if (isTransitioning) return;
@@ -643,11 +674,22 @@
                 setTimeout(() => content.classList.add('revealed'), 50);
             }
 
-            // If navigating back to voting, restore voted UI if needed
+            // If navigating back to voting, restore voted UI and correct button
             if (toId === 'view2') {
                 setTimeout(() => {
                     if (localStorage.getItem('hasVoted')) {
                         setVotedUI(localStorage.getItem('votedFor'));
+                    }
+                    // 🌟 CHANGE 5: YE CODE ADD KARO - BACK BUTTON LOGIC
+                    if (selectedClass) {
+                        const resultBtn = document.getElementById('resultBtn');
+                        if (selectedClass === '9') {
+                            resultBtn.innerHTML = `See Class 9 Result <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+                            resultBtn.onclick = () => navigateForward('view2', 'view3b');
+                        } else {
+                            resultBtn.innerHTML = `See Class 10 Result <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+                            resultBtn.onclick = () => navigateForward('view2', 'view3');
+                        }
                     }
                 }, 550);
             }
@@ -781,59 +823,59 @@
         // ============================================
         const students = [
             { name: "Abdul Basit", marks: "783", img: "images/10.18.png" },
-{ name: "Abdul Rafay Ajmal", marks: "1016", img: "images/10.49.png" },
-{ name: "Abdula Mateen", marks: "866", img: "images/10.6.png" },
-{ name: "Abdullah Pervaiz", marks: "1010", img: "images/10.27.png" },
-{ name: "Abdullah Riaz", marks: "1126", img: "images/10.48.png" },
-{ name: "Abdur Rafay Karam Ali", marks: "1098", img: "images/10.38.png" },
-{ name: "Abdur Rehman Irshad", marks: "744", img: "images/10.19.png" },
-{ name: "Abdur Rehman Shaikh", marks: "849", img: "images/10.32.png" },
-{ name: "Afnan", marks: "986", img: "images/10.5.png" },
-{ name: "Ahmad Anayat", marks: "784", img: "images/10.37.png" },
-{ name: "Ahmad Asif", marks: "868", img: "images/10.41.png" },
-{ name: "Ahmad Khan", marks: "993", img: "images/10.33.png" },
-{ name: "Ahmad Sattar", marks: "681", img: "images/10.13.png" },
-{ name: "Ahmad Shabeer", marks: "863", img: "images/10.45.png" },
-{ name: "Anas Butt", marks: "1139", img: "images/10.40.png" },
-{ name: "Anas Rasheed", marks: "943", img: "images/10.36.png" },
-{ name: "Ayaz Anjum", marks: "784", img: "images/10.42.png" },
-{ name: "Azhan", marks: "1010", img: "images/10.44.png" },
-{ name: "Faizan Haider", marks: "1054", img: "images/10.7.png" },
-{ name: "Hammad", marks: "966", img: "images/10.24.png" },
-{ name: "Haroon", marks: "980", img: "images/10.47.png" },
-{ name: "Hasan Shah", marks: "966", img: "images/10.16.png" },
-{ name: "Haseeb", marks: "887", img: "images/10.17.png" },
-{ name: "Hasham Rizwan", marks: "582", img: "images/10.15.png" },
-{ name: "Hasnain Aslam", marks: "866", img: "images/10.39.png" },
-{ name: "Hasan sattar", marks: "❌", img: "PRIVATE" },
-{ name: "Hassan Shahid", marks: "814", img: "images/10.10.png" },
-{ name: "Hassan Waseem", marks: "722", img: "images/10.31.png" },
-{ name: "Ibrahim", marks: "714 ", img: "images/10.21.png" },
-{ name: "Jafer Sadique", marks: "997", img: "images/10.11.png" },
-{ name: "Javaid Hussain", marks: "802", img: "images/10.22.png" },
-{ name: "Maaz Husain", marks: "1047", img: "images/10.26.png" },
-{ name: "Madni", marks: "1058", img: "images/10.8.png" },
-{ name: "Mashood", marks: "691", img: "images/10.43.png" },
-{ name: "Moazzam Baig", marks: "949", img: "images/10.25.png" },
-{ name: "Muhammad Bin Abubakar", marks: "893", img: "images/10.14.png" },
-{ name: "Muhammad Bin Amjad", marks: "1104", img: "images/10.1.png" },
-{ name: "Muhammad Fahad", marks: "852", img: "images/10.3.png" },
-{ name: "Muhammad Muavia", marks: "451 🌸🌸🌸", img: "images/10.4.png" },
-{ name: "Muneeb", marks: "811", img: "images/10.34.png" },
-{ name: "Ruman", marks: "688", img: "images/10.23.png" },
-{ name: "Sami-ul-Haq", marks: "837", img: "images/10.9.png" },
-{ name: "Shahzaib Haider", marks: "921", img: "images/10.12.png" },
-{ name: "Shoaib Hussain", marks: "❌", img: "PRIVATE" },
-{ name: "Subhan Kashif", marks: "965", img: "images/10.35.png" },
-{ name: "Subhan Shoaib", marks: "❌", img: "PRIVATE" },
-{ name: "Talha Ijaz", marks: "943", img: "images/10.20.png" },
-{ name: "Talha Shahid", marks: "❌" },
-{ name: "Toseef Nasir", marks: "1023", img: "images/10.2.png" },
-{ name: "Umer Usman", marks: "❌", img: "PRIVATE" },
-{ name: "Usman Rabnawaz", marks: "1021", img: "images/10.30.png" },
-{ name: "Usman Shafiq", marks: "620", img: "images/10.46.png" },
-{ name: "Usman Shahid", marks: "996", img: "images/10.28.png" },
-{ name: "Zain Irfan", marks: "985", img: "images/10.29.png" }
+            { name: "Abdul Rafay Ajmal", marks: "1016", img: "images/10.49.png" },
+            { name: "Abdula Mateen", marks: "866", img: "images/10.6.png" },
+            { name: "Abdullah Pervaiz", marks: "1010", img: "images/10.27.png" },
+            { name: "Abdullah Riaz", marks: "1126", img: "images/10.48.png" },
+            { name: "Abdur Rafay Karam Ali", marks: "1098", img: "images/10.38.png" },
+            { name: "Abdur Rehman Irshad", marks: "744", img: "images/10.19.png" },
+            { name: "Abdur Rehman Shaikh", marks: "849", img: "images/10.32.png" },
+            { name: "Afnan", marks: "986", img: "images/10.5.png" },
+            { name: "Ahmad Anayat", marks: "784", img: "images/10.37.png" },
+            { name: "Ahmad Asif", marks: "868", img: "images/10.41.png" },
+            { name: "Ahmad Khan", marks: "993", img: "images/10.33.png" },
+            { name: "Ahmad Sattar", marks: "681", img: "images/10.13.png" },
+            { name: "Ahmad Shabeer", marks: "863", img: "images/10.45.png" },
+            { name: "Anas Butt", marks: "1139", img: "images/10.40.png" },
+            { name: "Anas Rasheed", marks: "943", img: "images/10.36.png" },
+            { name: "Ayaz Anjum", marks: "784", img: "images/10.42.png" },
+            { name: "Azhan", marks: "1010", img: "images/10.44.png" },
+            { name: "Faizan Haider", marks: "1054", img: "images/10.7.png" },
+            { name: "Hammad", marks: "966", img: "images/10.24.png" },
+            { name: "Haroon", marks: "980", img: "images/10.47.png" },
+            { name: "Hasan Shah", marks: "966", img: "images/10.16.png" },
+            { name: "Haseeb", marks: "887", img: "images/10.17.png" },
+            { name: "Hasham Rizwan", marks: "582", img: "images/10.15.png" },
+            { name: "Hasnain Aslam", marks: "866", img: "images/10.39.png" },
+            { name: "Hasan sattar", marks: "❌", img: "PRIVATE" },
+            { name: "Hassan Shahid", marks: "814", img: "images/10.10.png" },
+            { name: "Hassan Waseem", marks: "722", img: "images/10.31.png" },
+            { name: "Ibrahim", marks: "714 ", img: "images/10.21.png" },
+            { name: "Jafer Sadique", marks: "997", img: "images/10.11.png" },
+            { name: "Javaid Hussain", marks: "802", img: "images/10.22.png" },
+            { name: "Maaz Husain", marks: "1047", img: "images/10.26.png" },
+            { name: "Madni", marks: "1058", img: "images/10.8.png" },
+            { name: "Mashood", marks: "691", img: "images/10.43.png" },
+            { name: "Moazzam Baig", marks: "949", img: "images/10.25.png" },
+            { name: "Muhammad Bin Abubakar", marks: "893", img: "images/10.14.png" },
+            { name: "Muhammad Bin Amjad", marks: "1104", img: "images/10.1.png" },
+            { name: "Muhammad Fahad", marks: "852", img: "images/10.3.png" },
+            { name: "Muhammad Muavia", marks: "451 🌸🌸🌸", img: "images/10.4.png" },
+            { name: "Muneeb", marks: "811", img: "images/10.34.png" },
+            { name: "Ruman", marks: "688", img: "images/10.23.png" },
+            { name: "Sami-ul-Haq", marks: "837", img: "images/10.9.png" },
+            { name: "Shahzaib Haider", marks: "921", img: "images/10.12.png" },
+            { name: "Shoaib Hussain", marks: "❌", img: "PRIVATE" },
+            { name: "Subhan Kashif", marks: "965", img: "images/10.35.png" },
+            { name: "Subhan Shoaib", marks: "❌", img: "PRIVATE" },
+            { name: "Talha Ijaz", marks: "943", img: "images/10.20.png" },
+            { name: "Talha Shahid", marks: "" },
+            { name: "Toseef Nasir", marks: "1023", img: "images/10.2.png" },
+            { name: "Umer Usman", marks: "❌", img: "PRIVATE" },
+            { name: "Usman Rabnawaz", marks: "1021", img: "images/10.30.png" },
+            { name: "Usman Shafiq", marks: "620", img: "images/10.46.png" },
+            { name: "Usman Shahid", marks: "996", img: "images/10.28.png" },
+            { name: "Zain Irfan", marks: "985", img: "images/10.29.png" }
         ];
 
         students.sort((a, b) => a.name.localeCompare(b.name));
@@ -895,10 +937,10 @@
             { name: "Haseeb", marks: "417", img: "images/23.png" },
             { name: "Hasham Rizwan", marks: "269", img: "images/24.png" },
             { name: "Hasnain Aslam", marks: "397", img: "images/25.png" },
-            { name: "Hasan sattar", marks: "233 🌸🌸🌸", img: "images/26.png" },
+            { name: "Hasan sattar", marks: "233 🌸🌸", img: "images/26.png" },
             { name: "Hassan Shahid", marks: "389", img: "images/27.png" },
             { name: "Hassan Waseem", marks: "323 🌸", img: "images/28.png" },
-            { name: "Ibrahim", marks: "302 🌸", img: "images/29.png" },
+            { name: "Ibrahim", marks: "302 ", img: "images/29.png" },
             { name: "Jafer Sadique", marks: "498", img: "images/30.png" },
             { name: "Javaid Hussain", marks: "381", img: "images/31.png" },
             { name: "Maaz Husain", marks: "481", img: "images/32.png" },
@@ -910,18 +952,18 @@
             { name: "Muhammad Fahad", marks: "389", img: "images/38.png" },
             { name: "Muhammad Muavia", marks: "242 🌸", img: "images/39.png" },
             { name: "Muneeb", marks: "352", img: "images/40.png" },
-            { name: "Ruman", marks: "256 🌸", img: "images/41.png" },
+            { name: "Ruman", marks: "256 ", img: "images/41.png" },
             { name: "Sami-ul-Haq", marks: "398", img: "images/42.png" },
             { name: "Shahzaib Haider", marks: "425", img: "images/43.png" },
             { name: "Shoaib Hussain", marks: "235 🌸🌸", img: "images/44.png" },
             { name: "Subhan Kashif", marks: "463", img: "images/45.png" },
-            { name: "Subhan Shoaib", marks: "303 🌸🌸🌸", img: "images/46.png" },
+            { name: "Subhan Shoaib", marks: "303 🌸🌸", img: "images/46.png" },
             { name: "Talha Ijaz", marks: "454", img: "images/47.png" },
             { name: "Talha Shahid", marks: "270 🌸🌸", img: "images/48.png" },
             { name: "Toseef Nasir", marks: "491", img: "images/49.png" },
-            { name: "Umer Usman", marks: "229 🌸🌸🌸", img: "images/50.png" },
+            { name: "Umer Usman", marks: "229 🌸🌸", img: "images/50.png" },
             { name: "Usman Rabnawaz", marks: "449", img: "images/51.png" },
-            { name: "Usman Shafiq", marks: "252 🌸", img: "images/52.png" },
+            { name: "Usman Shafiq", marks: "252 ", img: "images/52.png" },
             { name: "Usman Shahid", marks: "490", img: "images/53.png" },
             { name: "Zain Irfan", marks: "456", img: "images/54.png" }
         ];
