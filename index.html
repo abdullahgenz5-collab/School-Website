@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gul-e-Faran School Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           DESIGN TOKENS — :root custom properties
+           ============================================ */
+        :root {
+            /* Colors - Sophisticated Dark Palette */
+            --color-bg: #050505;
+            --color-surface: rgba(255, 255, 255, 0.03);
+            --color-surface-elevated: rgba(255, 255, 255, 0.06);
+            --color-primary: #f97316;
+            --color-primary-hover: #fb923c;
+            --color-primary-glow: rgba(249, 115, 22, 0.35);
+            --color-ember-gold: #f59e0b;
+            --color-ember-purple: #8b5cf6;
+            --color-text-primary: #ffffff;
+            --color-text-secondary: #e0e0e0;
+            --color-text-muted: rgba(255, 255, 255, 0.4);
+            --color-border: rgba(255, 255, 255, 0.08);
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+
+            /* Typography */
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.6);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.8);
+            --shadow-glow: 0 0 30px rgba(249, 115, 22, 0.12);
+
+            /* Radius */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+
+            /* Motion */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-fast: 200ms;
+            --duration-base: 400ms;
+            --duration-slow: 600ms;
+        }
+
+        /* ============================================
+           BASE STYLES
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           STARFIELD CANVAS — single background canvas
+           ============================================ */
+        #starfield-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           VIEW SYSTEM — slide transitions
+           ============================================ */
+        .view-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 10;
+        }
+
+        .view {
+            display: none;
+            position: relative;
+            width: 100%;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Slide transition states */
+        .view.slide-in-right {
+            animation: slideInRight var(--duration-base) var(--ease-out-expo) forwards;
+        }
+        .view.slide-out-left {
+            animation: slideOutLeft var(--duration-base) var(--ease-out-expo) forwards;
+            position: absolute;
+        }
+        .view.slide-in-left {
+            animation: slideInLeft var(--duration-base) var(--ease-out-expo) forwards;
+        }
+        .view.slide-out-right {
+            animation: slideOutRight var(--duration-base) var(--ease-out-expo) forwards;
+            position: absolute;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutLeft {
+            from { transform: translateX(0); opacity: 1; }
+            to   { transform: translateX(-100%); opacity: 0; }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to   { transform: translateX(100%); opacity: 0; }
+        }
+
+        /* Entrance fade+scale animation */
+        .entrance-animate {
+            opacity: 0;
+            transform: scale(0.92);
+        }
+        .entrance-animate.revealed {
+            animation: entranceReveal var(--duration-slow) var(--ease-out-expo) forwards;
+        }
+        @keyframes entranceReveal {
+            from { opacity: 0; transform: scale(0.92); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* ============================================
+           CARD / SURFACE COMPONENT
+           ============================================ */
+        .card-surface {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-surface::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        }
+
+        /* ============================================
+           BUTTON COMPONENT — .btn-glow
+           One reusable class for EVERY button
+           ============================================ */
+        .btn-glow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: var(--radius-full);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+            color: #ffffff;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease-out-expo);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity var(--duration-fast);
+        }
+        .btn-glow:hover {
+            border-color: rgba(249, 115, 22, 0.6);
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.35), 0 6px 20px rgba(0,0,0,0.6);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+        .btn-glow:hover::after { opacity: 1; }
+        .btn-glow:active {
+            transform: scale(0.97) translateY(0);
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.2);
+        }
+        .btn-glow:disabled,
+        .btn-glow[aria-disabled="true"] {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-glow:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 3px;
+        }
+
+        /* Voted button variant */
+        .btn-glow.voted-btn {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+            border-color: rgba(251, 146, 60, 0.8) !important;
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.4) !important;
+            color: white !important;
+        }
+
+        /* Back button variant (same .btn-glow, just smaller) */
+        .btn-glow.btn-back {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.875rem;
+        }
+
+        /* ============================================
+           TABLE STYLES
+           ============================================ */
+        .results-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.9rem;
+        }
+        .results-table th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-secondary);
+            font-family: var(--font-display);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+        .results-table td {
+            padding: 0.625rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--color-text-primary);
+        }
+        .results-table tbody tr {
+            transition: background var(--duration-fast);
+            cursor: pointer;
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+        .results-table tbody tr.revealed {
+            animation: rowReveal var(--duration-base) var(--ease-out-expo) forwards;
+        }
+        .results-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .results-table tbody tr:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: -2px;
+        }
+        @keyframes rowReveal {
+            from { opacity: 0; transform: translateX(-40px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Scrollable table wrapper */
+        .table-scroll-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .table-scroll-wrapper::-webkit-scrollbar {
+            width: 6px; height: 6px;
+        }
+        .table-scroll-wrapper::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .table-scroll-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-full);
+        }
+
+        /* ============================================
+           VOTE RESULTS BAR
+           ============================================ */
+        .vote-bar-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: 0.375rem;
+        }
+        .vote-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f97316, #fb923c);
+            border-radius: var(--radius-full);
+            transition: width 0.6s var(--ease-out-expo);
+            box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+        }
+
+        /* ============================================
+           STUDENT DETAIL IMAGE
+           ============================================ */
+        .detail-image {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ============================================
+           ACCESSIBILITY — prefers-reduced-motion
+           ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            .view.slide-in-right,
+            .view.slide-in-left,
+            .view.slide-out-left,
+            .view.slide-out-right {
+                animation: none;
+                transform: none;
+                opacity: 1;
+            }
+            .entrance-animate.revealed {
+                animation: none;
+                opacity: 1;
+                transform: scale(1);
+            }
+            .results-table tbody tr.revealed {
+                animation: none;
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE TWEAKS
+           ============================================ */
+        @media (max-width: 480px) {
+            .results-table th,
+            .results-table td {
+                padding: 0.5rem 0.625rem;
+                font-size: 0.8rem;
+            }
+            .btn-glow {
+                padding: 0.625rem 1.25rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+         SINGLE BACKGROUND CANVAS — Starfield System
+         ============================================ -->
+    <canvas id="starfield-canvas"></canvas>
+
+    <!-- React root container & main Vite entry -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- ============================================
+         VIEW CONTAINER — all views live here
+         ============================================ -->
+    <div class="view-container">
+
+        <!-- VIEW 1: Landing / Welcome -->
+        <div id="view1" class="view active">
+            <div class="card-surface p-8 sm:p-10 md:p-12 text-center w-full max-w-md mx-auto entrance-animate" id="view1-content">
+                <div class="mb-2">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold mb-3 text-white" style="font-family: var(--font-display);">
+                    WELCOME TO WEBSITE MADE BY ABDULLAH RIAZ
+                </h1>
+                <p class="mb-8 text-sm sm:text-base" style="color: var(--color-text-muted);">
+                    Here you can see the result of whole 10 class of Gul-e-Frana school
+                </p>
+                <button onclick="navigateForward('view1','view1b')" class="btn-glow w-full sm:w-auto">
+                    Go to Dashboard
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 1b: Class Selector -->
+        <div id="view1b" class="view">
+            <div class="card-surface p-8 sm:p-10 md:p-12 text-center w-full max-w-md mx-auto entrance-animate" id="view1b-content">
+                <h2 class="text-xl sm:text-2xl font-bold mb-2 text-white" style="font-family: var(--font-display);">
+                    Select Your Class
+                </h2>
+                <p class="mb-8 text-sm" style="color: var(--color-text-muted);">
+                    Choose which class results you want to view
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="navigateForward('view1b','view2')" class="btn-glow w-full sm:w-auto">
+                        Class 9
+                    </button>
+                    <button onclick="navigateForward('view1b','view2')" class="btn-glow w-full sm:w-auto">
+                        Class 10
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: Live Voting -->
+        <div id="view2" class="view">
+            <div class="card-surface p-6 sm:p-8 w-full max-w-lg mx-auto entrance-animate" id="view2-content">
+                <!-- Back button — top-left -->
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="navigateBackward('view2','view1b')" class="btn-glow btn-back" aria-label="Go back to class selector">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        Back
+                    </button>
+                    <span class="text-xs font-medium px-3 py-1 rounded-full border border-orange-500/30 text-orange-400 bg-orange-500/10">
+                        Live Voting
+                    </span>
+                </div>
+
+                <h2 id="voteTitle" class="text-lg sm:text-xl font-bold mb-6 text-center" style="font-family: var(--font-display); color: var(--color-text-secondary);">
+                    Who is your favorite teacher?
+                </h2>
+
+                <div id="voteButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8"></div>
+
+                <div id="results" class="space-y-4 mb-8 p-4 rounded-xl" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border);"></div>
+
+                <button id="resultBtn" onclick="navigateForward('view2','view3')" disabled class="btn-glow w-full" aria-disabled="true">
+                    See Class 10 Result
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Class 10 Results Table -->
+        <div id="view3" class="view">
+            <div class="card-surface p-4 sm:p-6 w-full max-w-3xl mx-auto entrance-animate" id="view3-content">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg sm:text-xl font-bold" style="font-family: var(--font-display); color: var(--color-text-secondary);">
+                        Class 10 Student List
+                    </h2>
+                    <button onclick="navigateBackward('view3','view2')" class="btn-glow btn-back">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        Back
+                    </button>
+                </div>
+                <div class="table-scroll-wrapper">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th class="text-left rounded-tl-md">Sr.</th>
+                                <th class="text-left">Name</th>
+                                <th class="text-left rounded-tr-md">Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: Class 10 Student Detail -->
+        <div id="view4" class="view">
+            <div class="card-surface p-4 sm:p-6 w-full max-w-2xl mx-auto entrance-animate" id="view4-content">
+                <h2 id="displayName" class="text-xl sm:text-2xl font-bold mb-4 text-center" style="font-family: var(--font-display); color: var(--color-text-secondary);"></h2>
+                <img id="resultImage" src="" alt="" class="detail-image mb-6" onerror="window.handleImgError(this)">
+                <button id="resultBtn2" onclick="navigateBackward('view4','view3')" class="btn-glow w-full">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    See Class 10 Result
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3b: Class 9 Results Table -->
+        <div id="view3b" class="view">
+            <div class="card-surface p-4 sm:p-6 w-full max-w-3xl mx-auto entrance-animate" id="view3b-content">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg sm:text-xl font-bold" style="font-family: var(--font-display); color: var(--color-text-secondary);">
+                        Class 9 Student List
+                    </h2>
+                    <button onclick="navigateBackward('view3b','view2')" class="btn-glow btn-back">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        Back
+                    </button>
+                </div>
+                <div class="table-scroll-wrapper">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th class="text-left rounded-tl-md">Sr.</th>
+                                <th class="text-left">Name</th>
+                                <th class="text-left rounded-tr-md">Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultBody9"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4b: Class 9 Student Detail -->
+        <div id="view4b" class="view">
+            <div class="card-surface p-4 sm:p-6 w-full max-w-2xl mx-auto entrance-animate" id="view4b-content">
+                <h2 id="displayName9" class="text-xl sm:text-2xl font-bold mb-4 text-center" style="font-family: var(--font-display); color: var(--color-text-secondary);"></h2>
+                <img id="resultImage9" src="" alt="" class="detail-image mb-6" onerror="window.handleImgError(this)">
+                <button id="resultBtn2b" onclick="navigateBackward('view4b','view3b')" class="btn-glow w-full">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    See Class 9 Result
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================
+         IMAGE FALLBACK HANDLER
+         ============================================ -->
+    <script>
+        window.handleImgError = function(img) {
+            img.onerror = null;
+            img.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzE5MTIyOCIgcng9IjEyIi8+PHRleHQgeD0iNDAwIiB5PSIyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM4YjdkYjgiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNTAwIj5ObyBwaG90byBhdmFpbGFibGU8L3RleHQ+PHRleHQgeD0iNDAwIiB5PSIzMTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM1YTRhN2EiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0Ij5VcGxvYWQgYW4gaW1hZ2UgYW5kIHVwZGF0ZSB0aGUgaW1nIGZpZWxkPC90ZXh0Pjwvc3ZnPg==";
+        };
+    </script>
+
+    <!-- ============================================
+         FIREBASE MODULE — preserved exactly
+         ============================================ -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDS39hZFMD8J8Wa7q-zgR4bQRuSo-AwKy4",
+            authDomain: "studio-9194064283-535eb.firebaseapp.com",
+            projectId: "studio-9194064283-535eb",
+            storageBucket: "studio-9194064283-535eb.appspot.com",
+            messagingSenderId: "920583220750",
+            appId: "1:920583220750:web:af72e57615a0e765ae565f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const docRef = doc(db, "votes", "teachers");
+
+        // ============================================
+        // NAVIGATION — slide transitions
+        // ============================================
+        let currentViewId = 'view1';
+        let isTransitioning = false;
+
+        window.navigateForward = (fromId, toId) => {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            const fromEl = document.getElementById(fromId);
+            const toEl = document.getElementById(toId);
+
+            // Outgoing slides left
+            fromEl.classList.add('slide-out-left');
+            fromEl.classList.remove('active');
+
+            // Incoming slides in from right
+            toEl.classList.add('active', 'slide-in-right');
+
+            // Trigger entrance animation on the new view's content
+            const content = toEl.querySelector('.entrance-animate');
+            if (content) {
+                content.classList.remove('revealed');
+                setTimeout(() => content.classList.add('revealed'), 50);
+            }
+
+            // If navigating to results table, trigger row reveals
+            if (toId === 'view3') {
+                setTimeout(() => revealTableRows('resultBody'), 600);
+            }
+            if (toId === 'view3b') {
+                setTimeout(() => revealTableRows('resultBody9'), 600);
+            }
+
+            currentViewId = toId;
+
+            setTimeout(() => {
+                fromEl.classList.remove('slide-out-left');
+                toEl.classList.remove('slide-in-right');
+                isTransitioning = false;
+            }, 500);
+        };
+
+        window.navigateBackward = (fromId, toId) => {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            const fromEl = document.getElementById(fromId);
+            const toEl = document.getElementById(toId);
+
+            // Outgoing slides right
+            fromEl.classList.add('slide-out-right');
+            fromEl.classList.remove('active');
+
+            // Incoming slides in from left
+            toEl.classList.add('active', 'slide-in-left');
+
+            // Trigger entrance animation
+            const content = toEl.querySelector('.entrance-animate');
+            if (content) {
+                content.classList.remove('revealed');
+                setTimeout(() => content.classList.add('revealed'), 50);
+            }
+
+            // If navigating back to voting, restore voted UI if needed
+            if (toId === 'view2') {
+                setTimeout(() => {
+                    if (localStorage.getItem('hasVoted')) {
+                        setVotedUI(localStorage.getItem('votedFor'));
+                    }
+                }, 550);
+            }
+
+            currentViewId = toId;
+
+            setTimeout(() => {
+                fromEl.classList.remove('slide-out-right');
+                toEl.classList.remove('slide-in-left');
+                isTransitioning = false;
+            }, 500);
+        };
+
+        // ============================================
+        // ENTRANCE ANIMATIONS — delayed fade+scale
+        // ============================================
+        function triggerEntrance(viewId, delayMs) {
+            const view = document.getElementById(viewId);
+            if (!view) return;
+            const content = view.querySelector('.entrance-animate');
+            if (!content) return;
+            content.classList.remove('revealed');
+            setTimeout(() => content.classList.add('revealed'), delayMs);
+        }
+
+        // First load entrance animation
+        window.addEventListener('DOMContentLoaded', () => {
+            triggerEntrance('view1', 100);
+        });
+
+        // ============================================
+        // TABLE ROW REVEAL — staggered left-to-right
+        // ============================================
+        function revealTableRows(tbodyId) {
+            const rows = document.querySelectorAll('#' + tbodyId + ' tr');
+            rows.forEach((row, i) => {
+                row.classList.remove('revealed');
+                let delay;
+                if (i < 20) {
+                    delay = i * 100;
+                } else {
+                    delay = 2000 + (i - 20) * 60;
+                }
+                setTimeout(() => row.classList.add('revealed'), delay);
+            });
+        }
+
+        // ============================================
+        // VOTING LOGIC — preserved exactly
+        // ============================================
+        const teacherNames = ['Sir Asif', 'Sir Imran', 'Sir Asif Rizwani', 'Sir Waheed', 'Sir Akmal', 'Sir Aftab'];
+        const voteTitle = document.getElementById('voteTitle');
+        const resultBtn = document.getElementById('resultBtn');
+
+        function enableResultBtn() {
+            if (!resultBtn) return;
+            resultBtn.disabled = false;
+            resultBtn.removeAttribute('aria-disabled');
+            resultBtn.classList.remove('opacity-35', 'cursor-not-allowed');
+        }
+
+        function setVotedUI(votedTeacherName) {
+            document.querySelectorAll('#voteButtons button').forEach(b => {
+                if (b.innerText.trim() === votedTeacherName) {
+                    b.classList.add('voted-btn');
+                }
+                b.disabled = true;
+                b.setAttribute('aria-disabled', 'true');
+            });
+            if (voteTitle) voteTitle.innerText = "Your choice recorded!";
+            enableResultBtn();
+        }
+
+        // Real-time vote results listener
+        onSnapshot(docRef, (docSnap) => {
+            const data = docSnap.data() || {};
+            let html = "";
+            teacherNames.forEach(t => {
+                const count = data[t] || 0;
+                html += `
+                    <div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span style="color: var(--color-text-primary);">${t}</span>
+                            <span style="color: var(--color-text-muted);">${count} votes</span>
+                        </div>
+                        <div class="vote-bar-track">
+                            <div class="vote-bar-fill" style="width:${Math.min(count * 5, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            const resEl = document.getElementById('results');
+            if (resEl) resEl.innerHTML = html;
+        });
+
+        // Build vote buttons
+        const container = document.getElementById('voteButtons');
+        if (container) {
+            teacherNames.forEach(t => {
+                const btn = document.createElement('button');
+                btn.innerText = t;
+                btn.className = "btn-glow";
+
+                btn.onclick = async () => {
+                    if (localStorage.getItem('hasVoted')) return;
+
+                    localStorage.setItem('hasVoted', 'true');
+                    localStorage.setItem('votedFor', t);
+
+                    setVotedUI(t);
+
+                    try {
+                        await setDoc(docRef, { [t]: increment(1) }, { merge: true });
+                    } catch (e) {
+                        console.error("Vote save failed:", e);
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Restore voted state on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('hasVoted')) {
+                setVotedUI(localStorage.getItem('votedFor'));
+            }
+        });
+
+        // ============================================
+        // CLASS 10 STUDENT DATA
+        // ============================================
+        const students = [
+            { name: "Abdul Basit", marks: "783", img: "images/10.18.png" },
+{ name: "Abdul Rafay Ajmal", marks: "1016", img: "images/10.49.png" },
+{ name: "Abdula Mateen", marks: "866", img: "images/10.6.png" },
+{ name: "Abdullah Pervaiz", marks: "1010", img: "images/10.27.png" },
+{ name: "Abdullah Riaz", marks: "1126", img: "images/10.48.png" },
+{ name: "Abdur Rafay Karam Ali", marks: "1098", img: "images/10.38.png" },
+{ name: "Abdur Rehman Irshad", marks: "744", img: "images/10.19.png" },
+{ name: "Abdur Rehman Shaikh", marks: "849", img: "images/10.32.png" },
+{ name: "Afnan", marks: "986", img: "images/10.5.png" },
+{ name: "Ahmad Anayat", marks: "784", img: "images/10.37.png" },
+{ name: "Ahmad Asif", marks: "868", img: "images/10.41.png" },
+{ name: "Ahmad Khan", marks: "993", img: "images/10.33.png" },
+{ name: "Ahmad Sattar", marks: "681", img: "images/10.13.png" },
+{ name: "Ahmad Shabeer", marks: "863", img: "images/10.45.png" },
+{ name: "Anas Butt", marks: "1139", img: "images/10.40.png" },
+{ name: "Anas Rasheed", marks: "943", img: "images/10.36.png" },
+{ name: "Ayaz Anjum", marks: "784", img: "images/10.42.png" },
+{ name: "Azhan", marks: "1010", img: "images/10.44.png" },
+{ name: "Faizan Haider", marks: "1054", img: "images/10.7.png" },
+{ name: "Hammad", marks: "966", img: "images/10.24.png" },
+{ name: "Haroon", marks: "980", img: "images/10.47.png" },
+{ name: "Hasan Shah", marks: "966", img: "images/10.16.png" },
+{ name: "Haseeb", marks: "887", img: "images/10.17.png" },
+{ name: "Hasham Rizwan", marks: "582", img: "images/10.15.png" },
+{ name: "Hasnain Aslam", marks: "866", img: "images/10.39.png" },
+{ name: "Hasan sattar", marks: "❌", img: "PRIVATE" },
+{ name: "Hassan Shahid", marks: "814", img: "images/10.10.png" },
+{ name: "Hassan Waseem", marks: "722", img: "images/10.31.png" },
+{ name: "Ibrahim", marks: "714 ", img: "images/10.21.png" },
+{ name: "Jafer Sadique", marks: "997", img: "images/10.11.png" },
+{ name: "Javaid Hussain", marks: "802", img: "images/10.22.png" },
+{ name: "Maaz Husain", marks: "1047", img: "images/10.26.png" },
+{ name: "Madni", marks: "1058", img: "images/10.8.png" },
+{ name: "Mashood", marks: "691", img: "images/10.43.png" },
+{ name: "Moazzam Baig", marks: "949", img: "images/10.25.png" },
+{ name: "Muhammad Bin Abubakar", marks: "893", img: "images/10.14.png" },
+{ name: "Muhammad Bin Amjad", marks: "1104", img: "images/10.1.png" },
+{ name: "Muhammad Fahad", marks: "852", img: "images/10.3.png" },
+{ name: "Muhammad Muavia", marks: "451 🌸🌸🌸", img: "images/10.4.png" },
+{ name: "Muneeb", marks: "811", img: "images/10.34.png" },
+{ name: "Ruman", marks: "688", img: "images/10.23.png" },
+{ name: "Sami-ul-Haq", marks: "837", img: "images/10.9.png" },
+{ name: "Shahzaib Haider", marks: "921", img: "images/10.12.png" },
+{ name: "Shoaib Hussain", marks: "❌", img: "PRIVATE" },
+{ name: "Subhan Kashif", marks: "965", img: "images/10.35.png" },
+{ name: "Subhan Shoaib", marks: "❌", img: "PRIVATE" },
+{ name: "Talha Ijaz", marks: "943", img: "images/10.20.png" },
+{ name: "Talha Shahid", marks: "❌" },
+{ name: "Toseef Nasir", marks: "1023", img: "images/10.2.png" },
+{ name: "Umer Usman", marks: "❌", img: "PRIVATE" },
+{ name: "Usman Rabnawaz", marks: "1021", img: "images/10.30.png" },
+{ name: "Usman Shafiq", marks: "620", img: "images/10.46.png" },
+{ name: "Usman Shahid", marks: "996", img: "images/10.28.png" },
+{ name: "Zain Irfan", marks: "985", img: "images/10.29.png" }
+        ];
+
+        students.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Build Class 10 table
+        const tbody = document.getElementById('resultBody');
+        if (tbody) {
+            students.forEach((s, i) => {
+                const row = document.createElement('tr');
+                row.setAttribute('tabindex', '0');
+                row.innerHTML = `
+                    <td class="text-left" style="color: var(--color-text-muted); font-family: var(--font-display);">${i+1}</td>
+                    <td class="text-left font-medium">${s.name}</td>
+                    <td class="text-left" style="font-family: var(--font-display); font-weight: 600; color: var(--color-text-secondary);">${s.marks}</td>
+                `;
+                row.onclick = () => {
+                    document.getElementById('displayName').innerText = s.name;
+                    document.getElementById('resultImage').src = s.img;
+                    document.getElementById('resultImage').alt = `Result card for ${s.name}`;
+                    navigateForward('view3', 'view4');
+                };
+                row.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        row.click();
+                    }
+                };
+                tbody.appendChild(row);
+            });
+        }
+
+        
+        // ============================================
+        // CLASS 9 STUDENT DATA
+        // ============================================
+        const students9 = [
+            { name: "Abdul Basit", marks: "350", img: "images/1.png" },
+            { name: "Abdul Rafay Ajmal", marks: "474", img: "images/2.png" },
+            { name: "Abdula Mateen", marks: "413", img: "images/3.png" },
+            { name: "Abdullah Pervaiz", marks: "485", img: "images/4.png" },
+            { name: "Abdullah Riaz", marks: "520", img: "images/5.png" },
+            { name: "Abdur Rafay Karam Ali", marks: "496", img: "images/6.png" },
+            { name: "Abdur Rehman Irshad", marks: "367", img: "images/7.png" },
+            { name: "Abdur Rehman Shaikh", marks: "418", img: "images/8.png" },
+            { name: "Afnan", marks: "474", img: "images/9.png" },
+            { name: "Ahmad Anayat", marks: "351", img: "images/10.png" },
+            { name: "Ahmad Asif", marks: "391", img: "images/11.png" },
+            { name: "Ahmad Khan", marks: "448", img: "images/12.png" },
+            { name: "Ahmad Sattar", marks: "316", img: "images/13.png" },
+            { name: "Ahmad Shabeer", marks: "411", img: "images/14.png" },
+            { name: "Anas Butt", marks: "532", img: "images/15.png" },
+            { name: "Anas Rasheed", marks: "437", img: "images/16.png" },
+            { name: "Ayaz Anjum", marks: "374", img: "images/17.png" },
+            { name: "Azhan", marks: "468", img: "images/18.png" },
+            { name: "Faizan Haider", marks: "512", img: "images/19.png" },
+            { name: "Hammad", marks: "461", img: "images/20.png" },
+            { name: "Haroon", marks: "435", img: "images/21.png" },
+            { name: "Hasan Shah", marks: "487", img: "images/22.png" },
+            { name: "Haseeb", marks: "417", img: "images/23.png" },
+            { name: "Hasham Rizwan", marks: "269", img: "images/24.png" },
+            { name: "Hasnain Aslam", marks: "397", img: "images/25.png" },
+            { name: "Hasan sattar", marks: "233 🌸🌸🌸", img: "images/26.png" },
+            { name: "Hassan Shahid", marks: "389", img: "images/27.png" },
+            { name: "Hassan Waseem", marks: "323 🌸", img: "images/28.png" },
+            { name: "Ibrahim", marks: "302 🌸", img: "images/29.png" },
+            { name: "Jafer Sadique", marks: "498", img: "images/30.png" },
+            { name: "Javaid Hussain", marks: "381", img: "images/31.png" },
+            { name: "Maaz Husain", marks: "481", img: "images/32.png" },
+            { name: "Madni", marks: "507", img: "images/33.png" },
+            { name: "Mashood", marks: "321", img: "images/34.png" },
+            { name: "Moazzam Baig", marks: "413", img: "images/35.png" },
+            { name: "Muhammad Bin Abubakar", marks: "429", img: "images/36.png" },
+            { name: "Muhammad Bin Amjad", marks: "512", img: "images/37.png" },
+            { name: "Muhammad Fahad", marks: "389", img: "images/38.png" },
+            { name: "Muhammad Muavia", marks: "242 🌸", img: "images/39.png" },
+            { name: "Muneeb", marks: "352", img: "images/40.png" },
+            { name: "Ruman", marks: "256 🌸", img: "images/41.png" },
+            { name: "Sami-ul-Haq", marks: "398", img: "images/42.png" },
+            { name: "Shahzaib Haider", marks: "425", img: "images/43.png" },
+            { name: "Shoaib Hussain", marks: "235 🌸🌸", img: "images/44.png" },
+            { name: "Subhan Kashif", marks: "463", img: "images/45.png" },
+            { name: "Subhan Shoaib", marks: "303 🌸🌸🌸", img: "images/46.png" },
+            { name: "Talha Ijaz", marks: "454", img: "images/47.png" },
+            { name: "Talha Shahid", marks: "270 🌸🌸", img: "images/48.png" },
+            { name: "Toseef Nasir", marks: "491", img: "images/49.png" },
+            { name: "Umer Usman", marks: "229 🌸🌸🌸", img: "images/50.png" },
+            { name: "Usman Rabnawaz", marks: "449", img: "images/51.png" },
+            { name: "Usman Shafiq", marks: "252 🌸", img: "images/52.png" },
+            { name: "Usman Shahid", marks: "490", img: "images/53.png" },
+            { name: "Zain Irfan", marks: "456", img: "images/54.png" }
+        ];
+        
+
+        // Build Class 9 table
+        const tbody9 = document.getElementById('resultBody9');
+        if (tbody9) {
+            students9.forEach((s, i) => {
+                const row = document.createElement('tr');
+                row.setAttribute('tabindex', '0');
+                row.innerHTML = `
+                    <td class="text-left" style="color: var(--color-text-muted); font-family: var(--font-display);">${i+1}</td>
+                    <td class="text-left font-medium">${s.name}</td>
+                    <td class="text-left" style="font-family: var(--font-display); font-weight: 600; color: var(--color-text-secondary);">${s.marks}</td>
+                `;
+                row.onclick = () => {
+                    document.getElementById('displayName9').innerText = s.name;
+                    document.getElementById('resultImage9').src = s.img;
+                    document.getElementById('resultImage9').alt = `Result card for ${s.name}`;
+                    navigateForward('view3b', 'view4b');
+                };
+                row.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        row.click();
+                    }
+                };
+                tbody9.appendChild(row);
+            });
+        }
+    </script>
+
+    <!-- ============================================
+         CANVAS STARFIELD SYSTEM — Steps 4-10
+         Hand-rolled 2D Canvas implementation
+         ============================================ -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('starfield-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let stars = [];
+            let animationId = null;
+            let dpr = window.devicePixelRatio || 1;
+            let width = 0;
+            let height = 0;
+
+            let time = 0;
+            let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            // STEP 6: Mouse parallax tracking
+            let mouseX = 0;
+            let mouseY = 0;
+            let hasMouse = false;
+            let currentOffsetX = 0;
+            let currentOffsetY = 0;
+            const MAX_PARALLAX_PX = 20;
+            const PARALLAX_EASE = 0.04;
+
+            // STEP 8: Scroll warp tracking
+            let warpIntensity = 0;
+            let lastScrollTime = performance.now();
+
+            // Color palette for stars
+            const STAR_PALETTES = [
+                { r: 255, g: 255, b: 255 }, // pure white
+                { r: 220, g: 240, b: 255 }, // soft ice blue
+                { r: 180, g: 230, b: 255 }, // light cyan
+                { r: 255, g: 235, b: 200 }  // warm amber tint
+            ];
+
+            // STEP 4: Adaptive star count formula
+            // Desktop (~1920px -> ~2073k px) => ~250-320 stars (clamped to 310)
+            // Small mobile (~375px -> ~250k px) => ~120-150 stars (calculated ~141)
+            function calculateTargetStarCount(w, h) {
+                const area = w * h;
+                const count = Math.round(110 + (area / 8000));
+                return Math.max(120, Math.min(310, count));
+            }
+
+            // STEP 5: Create a star with depth bands
+            function createStar(w, h) {
+                const randDepth = Math.random();
+                let depth;
+                let baseAlpha;
+                let radius;
+
+                // Distribution: ~60% far (0.0-0.4), ~30% mid (0.4-0.7), ~10% near (0.7-1.0)
+                if (randDepth < 0.6) {
+                    depth = Math.random() * 0.4;
+                    radius = Math.random() * 0.7 + 0.5;
+                    baseAlpha = Math.random() * 0.35 + 0.35;
+                } else if (randDepth < 0.9) {
+                    depth = 0.4 + Math.random() * 0.3;
+                    radius = Math.random() * 0.8 + 1.0;
+                    baseAlpha = Math.random() * 0.3 + 0.55;
+                } else {
+                    depth = 0.7 + Math.random() * 0.3;
+                    radius = Math.random() * 1.0 + 1.6;
+                    // Near-band stars render at slightly higher base brightness
+                    baseAlpha = Math.random() * 0.2 + 0.75;
+                }
+
+                const baseX = Math.random() * w;
+                const baseY = Math.random() * h;
+                const color = STAR_PALETTES[Math.floor(Math.random() * STAR_PALETTES.length)];
+
+                // STEP 7: Twinkle properties (~20-30% twinkle, rest static)
+                const twinkles = Math.random() < 0.25;
+                const twinkleSpeed = 0.0015 + Math.random() * 0.0035;
+                const twinklePhase = Math.random() * Math.PI * 2;
+
+                return {
+                    baseX,
+                    baseY,
+                    x: baseX,
+                    y: baseY,
+                    depth,
+                    radius,
+                    baseAlpha,
+                    color,
+                    twinkles,
+                    twinkleSpeed,
+                    twinklePhase
+                };
+            }
+
+            // STEP 4: Resize canvas & clamp star positions
+            function resize() {
+                dpr = window.devicePixelRatio || 1;
+                const oldWidth = width;
+                const oldHeight = height;
+
+                width = window.innerWidth;
+                height = window.innerHeight;
+
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                const targetCount = calculateTargetStarCount(width, height);
+
+                if (stars.length === 0) {
+                    for (let i = 0; i < targetCount; i++) {
+                        stars.push(createStar(width, height));
+                    }
+                } else {
+                    // Clamp existing star positions into new bounds rather than discarding
+                    stars.forEach(star => {
+                        if (oldWidth > 0 && oldHeight > 0) {
+                            star.baseX = (star.baseX / oldWidth) * width;
+                            star.baseY = (star.baseY / oldHeight) * height;
+                        }
+                        star.baseX = Math.max(0, Math.min(width, star.baseX));
+                        star.baseY = Math.max(0, Math.min(height, star.baseY));
+                        star.x = star.baseX;
+                        star.y = star.baseY;
+                    });
+
+                    // Adjust star count to match target
+                    if (stars.length < targetCount) {
+                        const toAdd = targetCount - stars.length;
+                        for (let i = 0; i < toAdd; i++) {
+                            stars.push(createStar(width, height));
+                        }
+                    } else if (stars.length > targetCount) {
+                        stars.length = targetCount;
+                    }
+                }
+
+                if (prefersReducedMotion) {
+                    renderStaticFrame();
+                }
+            }
+
+            // STEP 6: Mouse move & leave listeners
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                hasMouse = true;
+            }, { passive: true });
+
+            window.addEventListener('mouseleave', () => {
+                hasMouse = false;
+            });
+
+            // STEP 8: Scroll listener for warp effect
+            function onScroll(e) {
+                const now = performance.now();
+                const dt = Math.max(1, now - lastScrollTime);
+                const target = (e.target === document || e.target === window) ? window : e.target;
+                const currentY = target.scrollTop !== undefined ? target.scrollTop : (window.scrollY || 0);
+                const delta = Math.abs(currentY - (target._lastY || 0));
+                target._lastY = currentY;
+                lastScrollTime = now;
+
+                if (delta > 1) {
+                    const speed = delta / dt;
+                    warpIntensity = Math.min(1.0, warpIntensity + speed * 0.6);
+                }
+            }
+            window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+
+            // Render single static frame for prefers-reduced-motion
+            function renderStaticFrame() {
+                ctx.clearRect(0, 0, width, height);
+                stars.forEach(star => {
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(${star.color.r}, ${star.color.g}, ${star.color.b}, ${star.baseAlpha})`;
+                    ctx.arc(star.baseX, star.baseY, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            // STEP 9: Single requestAnimationFrame render loop
+            function animate(now) {
+                if (prefersReducedMotion) return;
+
+                if (document.visibilityState === 'hidden') {
+                    animationId = requestAnimationFrame(animate);
+                    return;
+                }
+
+                time = now || performance.now();
+
+                // 1. Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // 2. Mouse offset easing & decay back to center on mouseleave
+                let targetOffsetX = 0;
+                let targetOffsetY = 0;
+                if (hasMouse) {
+                    targetOffsetX = (mouseX - width / 2) / (width / 2);
+                    targetOffsetY = (mouseY - height / 2) / (height / 2);
+                    targetOffsetX = Math.max(-1, Math.min(1, targetOffsetX));
+                    targetOffsetY = Math.max(-1, Math.min(1, targetOffsetY));
+                }
+                currentOffsetX += (targetOffsetX - currentOffsetX) * PARALLAX_EASE;
+                currentOffsetY += (targetOffsetY - currentOffsetY) * PARALLAX_EASE;
+
+                // 3. Smooth warp intensity decay
+                warpIntensity *= 0.92;
+                if (warpIntensity < 0.005) warpIntensity = 0;
+
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                // 4. Draw stars
+                stars.forEach(star => {
+                    // STEP 6: Eased target position
+                    const targetX = star.baseX - currentOffsetX * MAX_PARALLAX_PX * star.depth;
+                    const targetY = star.baseY - currentOffsetY * MAX_PARALLAX_PX * star.depth;
+                    star.x += (targetX - star.x) * PARALLAX_EASE;
+                    star.y += (targetY - star.y) * PARALLAX_EASE;
+
+                    // STEP 7: Alpha computation
+                    let alpha = star.baseAlpha;
+                    if (star.twinkles) {
+                        alpha = star.baseAlpha * (0.6 + 0.4 * Math.sin(time * star.twinkleSpeed + star.twinklePhase));
+                    }
+
+                    // Draw (Circle vs Radial Warp Streak)
+                    if (warpIntensity > 0.02) {
+                        // STEP 8: Warp streak outward from center
+                        let vecX = star.x - centerX;
+                        let vecY = star.y - centerY;
+                        const dist = Math.hypot(vecX, vecY) || 1;
+                        const dirX = vecX / dist;
+                        const dirY = vecY / dist;
+
+                        const streakLength = warpIntensity * star.depth * star.radius * 14;
+
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(${star.color.r}, ${star.color.g}, ${star.color.b}, ${alpha})`;
+                        ctx.lineWidth = Math.max(0.8, star.radius * 0.9);
+                        ctx.lineCap = 'round';
+                        ctx.moveTo(star.x, star.y);
+                        ctx.lineTo(star.x + dirX * streakLength, star.y + dirY * streakLength);
+                        ctx.stroke();
+                    } else {
+                        ctx.beginPath();
+                        ctx.fillStyle = `rgba(${star.color.r}, ${star.color.g}, ${star.color.b}, ${alpha})`;
+                        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                // 5. Request next frame
+                animationId = requestAnimationFrame(animate);
+            }
+
+            // Debounced resize (150ms)
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(resize, 150);
+            });
+
+            // STEP 10: Reduced motion preference changes
+            const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            mediaQuery.addEventListener('change', (e) => {
+                prefersReducedMotion = e.matches;
+                if (prefersReducedMotion) {
+                    if (animationId) cancelAnimationFrame(animationId);
+                    renderStaticFrame();
+                } else {
+                    animationId = requestAnimationFrame(animate);
+                }
+            });
+
+            // Initialize starfield
+            resize();
+            if (!prefersReducedMotion) {
+                animationId = requestAnimationFrame(animate);
+            }
+        })();
+    </script>
+    <audio controls>
+    <source src="/a.mp3" type="audio/mpeg">
+    Aapka browser audio element ko support nahi karta.
+</audio>
+</body>
+</html>

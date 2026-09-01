@@ -1,0 +1,6 @@
+{
+  "name": "Gul-e-Faran School Portal",
+  "description": "Gul-e-Faran School Portal with Class 9 and 10 results and live teacher voting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
